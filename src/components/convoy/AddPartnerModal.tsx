@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePartnerStore } from '@/stores/partnerStore';
-import { useUserStore } from '@/stores/userStore';
-import { triggerPartnerAddedWebhook } from '@/lib/webhooks';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -25,8 +23,6 @@ export function AddPartnerModal({ open, onOpenChange }: AddPartnerModalProps) {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addPartner, partners } = usePartnerStore();
-
-  const userProfile = useUserStore((state) => state.profile);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,14 +50,6 @@ export function AddPartnerModal({ open, onOpenChange }: AddPartnerModalProps) {
       name: validatedData.name,
       email: validatedData.email,
       avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(validatedData.name)}`,
-    });
-
-    // Trigger n8n webhook for email notification
-    const userName = userProfile?.name || 'A DREAMAKER user';
-    await triggerPartnerAddedWebhook({
-      partnerName: validatedData.name,
-      partnerEmail: validatedData.email,
-      userName,
     });
 
     toast.success(`${validatedData.name} has been added as an accountability partner`);

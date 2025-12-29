@@ -194,59 +194,6 @@ export async function generateTextWithOpenAI({
 }
 
 /**
- * Alternative: Generate image using existing N8N webhook but with OpenAI backend
- * This can be used if the webhook is configured to use OpenAI/DALL-E
- */
-export async function generateImageViaWebhook(prompt: string): Promise<string> {
-  const N8N_IMAGE_GENERATION_WEBHOOK_URL = 
-    'https://gatsolutions.app.n8n.cloud/webhook/8c4406f0-7179-4fd6-a06a-10c8b3c5d7ee';
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), GENERATION_TIMEOUT);
-
-    const response = await fetch(N8N_IMAGE_GENERATION_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ prompt }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`Webhook request failed: ${response.status} ${response.statusText}`);
-    }
-
-    // The webhook returns a binary image file
-    const blob = await response.blob();
-    
-    // Convert blob to base64 data URL
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        resolve(result);
-      };
-      reader.onerror = () => {
-        reject(new Error('Failed to convert image to data URL'));
-      };
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        throw new Error('Image generation timed out. Please try again.');
-      }
-      throw error;
-    }
-    throw new Error('An unexpected error occurred during image generation');
-  }
-}
-
-/**
  * Check if OpenAI API is properly configured
  */
 export function isOpenAIConfigured(): boolean {
