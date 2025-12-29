@@ -4,7 +4,8 @@
  */
 
 // Configuration - can be set via environment variables
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+// Support both VITE_GEMINI_API_KEY and VITE_GEMINI_KEY for flexibility
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_KEY || '';
 const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-3-pro-image-preview'; // Default to nanobanana model
 const GEMINI_ENDPOINT = import.meta.env.VITE_GEMINI_ENDPOINT || 'https://generativelanguage.googleapis.com/v1beta';
 

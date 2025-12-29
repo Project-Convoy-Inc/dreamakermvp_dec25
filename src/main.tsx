@@ -1,6 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+// Import test function (only loads in dev, tree-shaken in prod)
+if (import.meta.env.DEV) {
+  import("./lib/test-gemini-api.ts");
+}
 
 const rootElement = document.getElementById("root");
 
