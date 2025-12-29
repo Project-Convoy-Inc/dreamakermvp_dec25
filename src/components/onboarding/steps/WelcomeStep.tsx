@@ -12,17 +12,9 @@ interface WelcomeStepProps {
 }
 
 export function WelcomeStep({ onNext }: WelcomeStepProps) {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WelcomeStep.tsx:14',message:'WelcomeStep render start',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
-  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const setProfile = useUserStore((state) => state.setProfile);
-
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WelcomeStep.tsx:20',message:'WelcomeStep - hooks initialized',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
 
   const handleContinue = () => {
     if (!name.trim()) {
@@ -42,10 +34,6 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
     onNext();
   };
 
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WelcomeStep.tsx:37',message:'WelcomeStep - about to return JSX',data:{logoPath:dreamakerLogo},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
-  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

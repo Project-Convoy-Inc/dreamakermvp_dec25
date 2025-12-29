@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { 
   Calendar as CalendarIcon, 
   Trophy, 
@@ -118,6 +119,12 @@ export default function ProgressPage() {
     if (!dreamId) return undefined;
     return dreams.find(d => d.id === dreamId)?.title;
   };
+
+  const handleRefresh = async () => {
+    // Reload progress data
+    await new Promise(resolve => setTimeout(resolve, 800));
+    window.location.reload();
+  };
   
   return (
     <>
@@ -126,7 +133,8 @@ export default function ProgressPage() {
         <meta name="description" content="Track your progress towards your dreams. View reflections, streaks, and upcoming milestones." />
       </Helmet>
       
-      <div className="min-h-screen space-y-8">
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="min-h-screen space-y-8">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -447,7 +455,8 @@ export default function ProgressPage() {
             </CardContent>
           </Card>
         </motion.section>
-      </div>
+        </div>
+      </PullToRefresh>
     </>
   );
 }

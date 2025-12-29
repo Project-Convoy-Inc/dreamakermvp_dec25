@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useOnboardingState } from '@/hooks/useOnboardingState';
+import { useSwipeGesture } from '@/hooks/useSwipeGesture';
 import { ProgressDots } from '@/components/onboarding/ProgressDots';
 import { OnboardingMenu } from '@/components/onboarding/OnboardingMenu';
 import { WelcomeStep } from '@/components/onboarding/steps/WelcomeStep';
@@ -16,23 +17,48 @@ import { CelebrationStep } from '@/components/onboarding/steps/CelebrationStep';
 import { useDreamStore } from '@/stores/dreamStore';
 import { useUserStore } from '@/stores/userStore';
 import { useToast } from '@/hooks/use-toast';
+import { Clock } from 'lucide-react';
 
 const TOTAL_STEPS = 10;
+const ESTIMATED_TIME_PER_STEP = [1, 1, 2, 1, 3, 2, 2, 1, 2, 1]; // minutes per step
+const TOTAL_ESTIMATED_TIME = ESTIMATED_TIME_PER_STEP.reduce((a, b) => a + b, 0);
 
 export default function Onboarding() {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Onboarding.tsx:22',message:'Onboarding component render start',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
-  
   const navigate = useNavigate();
   const { toast } = useToast();
   const { state, updateState, nextStep, prevStep, goToStep, clearState } = useOnboardingState();
   const addDream = useDreamStore((state) => state.addDream);
   const setOnboardingComplete = useUserStore((state) => state.setOnboardingComplete);
 
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Onboarding.tsx:29',message:'Onboarding - hooks initialized',data:{currentStep:state?.currentStep},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
+  // Calculate remaining time
+  const remainingTime = ESTIMATED_TIME_PER_STEP.slice(state.currentStep).reduce((a, b) => a + b, 0);
+
+  // Add swipe gestures for navigation (except on generating and celebration steps)
+  const canSwipe = state.currentStep !== 8 && state.currentStep !== 9;
+  useSwipeGesture({
+    onSwipeRight: canSwipe && state.currentStep > 0 ? prevStep : undefined,
+    onSwipeLeft: canSwipe && state.currentStep < TOTAL_STEPS - 1 ? () => {
+      // Only allow swipe forward if current step is complete
+      const canProceed = validateCurrentStep();
+      if (canProceed) {
+        nextStep();
+      }
+    } : undefined,
+  });
+
+  const validateCurrentStep = () => {
+    // Add validation logic for each step
+    switch (state.currentStep) {
+      case 2:
+        return !!state.whatYouWant?.trim();
+      case 4:
+        return !!state.visionDescription?.trim();
+      case 5:
+        return !!state.currentStatus?.trim();
+      default:
+        return true;
+    }
+  };
 
   const handleSaveAndExit = () => {
     toast({
@@ -46,6 +72,15 @@ export default function Onboarding() {
     updateState({ 
       generatedImageUrl: imageUrl, 
       hasGeneratedImage: true 
+    });
+    nextStep();
+  };
+
+  const handleSkipImageGeneration = () => {
+    // Continue to celebration step without image
+    updateState({ 
+      generatedImageUrl: null, 
+      hasGeneratedImage: false 
     });
     nextStep();
   };
@@ -77,15 +112,8 @@ export default function Onboarding() {
   };
 
   const renderStep = () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Onboarding.tsx:71',message:'renderStep called',data:{currentStep:state.currentStep},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
-    
     switch (state.currentStep) {
       case 0:
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Onboarding.tsx:75',message:'renderStep - returning WelcomeStep',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
         return <WelcomeStep onNext={nextStep} />;
       
       case 1:
@@ -164,6 +192,8 @@ export default function Onboarding() {
         return (
           <GeneratingStep 
             onComplete={handleImageGenerated}
+            onSkip={handleSkipImageGeneration}
+            onSaveAndExit={handleSaveAndExit}
             whatYouWant={state.whatYouWant}
             visionDescription={state.visionDescription}
             userPhotos={state.userPhotos}
@@ -190,15 +220,19 @@ export default function Onboarding() {
     }
   };
 
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Onboarding.tsx:178',message:'Onboarding - about to render JSX',data:{currentStep:state.currentStep},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
-  
   return (
     <div className="min-h-screen bg-background">
       {/* Hide progress dots on generating step */}
       {state.currentStep !== 8 && (
-        <ProgressDots currentStep={state.currentStep} totalSteps={TOTAL_STEPS} />
+        <>
+          <ProgressDots currentStep={state.currentStep} totalSteps={TOTAL_STEPS} />
+          {remainingTime > 0 && (
+            <div className="fixed top-4 right-4 z-40 flex items-center gap-2 bg-card/90 backdrop-blur-sm border border-border rounded-full px-3 py-1.5 text-sm text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{remainingTime} min left</span>
+            </div>
+          )}
+        </>
       )}
       
       <OnboardingMenu onSaveAndExit={handleSaveAndExit} />

@@ -1,3 +1,5 @@
+import { ProgressImageMetadata } from './progress-tracking';
+
 export type TimeFrame = 'short' | 'mid' | 'long';
 
 export type Domain = 'work' | 'wealth' | 'family' | 'friends' | 'health' | 'spirituality' | 'interests';
@@ -15,6 +17,8 @@ export interface Dream {
   partners: Partner[];
   createdAt: string;
   updatedAt: string;
+  // Progress tracking for image enhancement
+  progressImageMetadata?: ProgressImageMetadata;
 }
 
 export interface DreamStep {

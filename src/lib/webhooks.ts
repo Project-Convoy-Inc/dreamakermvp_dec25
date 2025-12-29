@@ -1,7 +1,11 @@
 import { z } from 'zod';
+import { generateImageWithGemini, isGeminiConfigured } from './gemini-api';
 
 const N8N_PARTNER_WEBHOOK_URL = 'https://gatsolutions.app.n8n.cloud/webhook/1fda45a1-e714-4447-8886-bd50e0c5116d';
 const N8N_IMAGE_GENERATION_WEBHOOK_URL = 'https://gatsolutions.app.n8n.cloud/webhook/8c4406f0-7179-4fd6-a06a-10c8b3c5d7ee';
+
+// Configuration: Use Gemini API directly or via webhook
+const USE_GEMINI_DIRECT = import.meta.env.VITE_USE_GEMINI_DIRECT === 'true';
 
 export const partnerWebhookSchema = z.object({
   partnerName: z.string().trim().min(1).max(100),
@@ -48,20 +52,42 @@ export async function generateImageWithWebhook(data: ImageGenerationData): Promi
     throw new Error('Prompt is required');
   }
 
-  // Build the request body with prompt and optional images
-  const requestBody: {
-    prompt: string;
-    images?: string[];
-  } = {
-    prompt: prompt.trim(),
-  };
-
-  // Include reference images if provided
-  if (referenceImages && referenceImages.length > 0) {
-    requestBody.images = referenceImages;
+  // Option 1: Use Gemini API directly if configured
+  if (USE_GEMINI_DIRECT && isGeminiConfigured()) {
+    try {
+      console.log('Using Gemini nanobanana (gemini-3-pro-image-preview) for image generation');
+      const result = await generateImageWithGemini({
+        prompt: prompt.trim(),
+        aspectRatio: '1:1',
+        numberOfImages: 1,
+        safetySettings: 'block_few',
+      });
+      return result.imageUrl;
+    } catch (error) {
+      console.error('Gemini API generation failed, falling back to webhook:', error);
+      // Fall through to webhook method
+    }
   }
 
+  // Option 2: Use N8N webhook (should use Gemini nanobanana on backend)
   try {
+    console.log('Using webhook for image generation (expecting Gemini nanobanana)');
+    
+    // Build the request body with prompt and optional images
+    const requestBody: {
+      prompt: string;
+      images?: string[];
+      model?: string; // Specify model for webhook
+    } = {
+      prompt: prompt.trim(),
+      model: 'gemini-3-pro-image-preview', // Ensure webhook uses correct model
+    };
+
+    // Include reference images if provided
+    if (referenceImages && referenceImages.length > 0) {
+      requestBody.images = referenceImages;
+    }
+
     const response = await fetch(N8N_IMAGE_GENERATION_WEBHOOK_URL, {
       method: 'POST',
       headers: {
@@ -71,7 +97,8 @@ export async function generateImageWithWebhook(data: ImageGenerationData): Promi
     });
 
     if (!response.ok) {
-      throw new Error(`Image generation failed: ${response.status} ${response.statusText}`);
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`Image generation failed: ${response.status} ${response.statusText}. ${errorText}`);
     }
 
     // The webhook returns a binary image file

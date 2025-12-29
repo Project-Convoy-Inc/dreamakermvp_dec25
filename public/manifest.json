@@ -1,0 +1,73 @@
+{
+  "name": "Dreamaker",
+  "short_name": "Dreamaker",
+  "description": "Your complete life vision planning platform. Clarify, track, and achieve your dreams.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8B5CF6",
+  "orientation": "portrait",
+  "scope": "/",
+  "categories": ["lifestyle", "productivity", "education"],
+  "icons": [
+    {
+      "src": "/dreamaker-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/dreamaker-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/dreamaker-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/vision-board.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Vision Board - Map your dreams"
+    },
+    {
+      "src": "/screenshots/progress.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Track your progress"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Vision Board",
+      "short_name": "Vision",
+      "description": "View your vision board",
+      "url": "/",
+      "icons": [{ "src": "/dreamaker-logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Convoy",
+      "short_name": "Convoy",
+      "description": "Connect with your support network",
+      "url": "/convoy",
+      "icons": [{ "src": "/dreamaker-logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Progress",
+      "short_name": "Progress",
+      "description": "Track your journey",
+      "url": "/progress",
+      "icons": [{ "src": "/dreamaker-logo.png", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
+

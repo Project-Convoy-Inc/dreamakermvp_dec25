@@ -9,6 +9,7 @@ import { SidekickChatWidget } from "@/components/sidekick/SidekickChatWidget";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { SyncStatus } from "@/components/ui/sync-status";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useUserStore } from "@/stores/userStore";
 import { useEffect, lazy, Suspense } from "react";
 import { VisionBoardSkeleton, ProgressPageSkeleton } from "@/components/ui/loading-skeleton";
@@ -19,6 +20,10 @@ const Convoy = lazy(() => import("./pages/Convoy"));
 const Progress = lazy(() => import("./pages/Progress"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Example: Admin-only pages
+// const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+// const UserManagement = lazy(() => import("./pages/UserManagement"));
 
 const queryClient = new QueryClient();
 
@@ -31,37 +36,30 @@ function AppContent() {
   const setOnboardingComplete = useUserStore((state) => state.setOnboardingComplete);
 
   // Dev bypass: Skip onboarding with ?skipOnboarding=true (only in development)
-  // Check this FIRST before the onboarding check
   const skipOnboarding = searchParams.get('skipOnboarding') === 'true';
   const isDev = import.meta.env.DEV;
   
   useEffect(() => {
     if (skipOnboarding && isDev) {
-      // Clear any existing onboarding state
       localStorage.removeItem('dreamaker_onboarding_state');
       
-      // Set up test user if not already set
       if (!profile) {
         setProfile({
           name: "Test User",
-          email: "test@example.com"
+          email: "test@example.com",
+          role: "user", // Default role for dev bypass
         });
       }
       
-      // Mark onboarding as complete
       if (!isOnboardingComplete) {
         setOnboardingComplete(true);
       }
       
-      // Remove the parameter from URL and navigate to home
       navigate('/', { replace: true });
     }
   }, [skipOnboarding, isDev, profile, isOnboardingComplete, setProfile, setOnboardingComplete, navigate]);
 
-  // If bypass is active, don't show onboarding (even if state hasn't updated yet)
   if (skipOnboarding && isDev) {
-    // Return null or a loading state while the effect runs
-    // The effect will navigate away, so this is just a brief moment
     return null;
   }
 
@@ -87,9 +85,61 @@ function AppContent() {
         <main className="container pt-20 md:pt-24 pb-24 md:pb-8">
           <Suspense fallback={<VisionBoardSkeleton />}>
             <Routes>
+              {/* Public routes (authenticated users) */}
               <Route path="/" element={<Index />} />
-              <Route path="/convoy" element={<Convoy />} />
-              <Route path="/progress" element={<Suspense fallback={<ProgressPageSkeleton />}><Progress /></Suspense>} />
+              
+              {/* Routes accessible by users and partners */}
+              <Route 
+                path="/convoy" 
+                element={
+                  <ProtectedRoute requiredRole={['user', 'partner']}>
+                    <Convoy />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Routes accessible by all authenticated users */}
+              <Route 
+                path="/progress" 
+                element={
+                  <Suspense fallback={<ProgressPageSkeleton />}>
+                    <Progress />
+                  </Suspense>
+                } 
+              />
+
+              {/* Admin-only routes */}
+              {/* 
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/users" 
+                element={
+                  <ProtectedRoute requiredRole="admin" showAccessDenied>
+                    <UserManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              */}
+
+              {/* Partner-only routes */}
+              {/* 
+              <Route 
+                path="/partner-dashboard" 
+                element={
+                  <ProtectedRoute requiredRole="partner">
+                    <PartnerDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              */}
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

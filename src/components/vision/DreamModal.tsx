@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dream, DOMAINS, TIMEFRAMES, Partner } from '@/types/dream';
 import { useDreamStore } from '@/stores/dreamStore';
 import { useGenerateDreamContent } from '@/hooks/useGenerateDreamContent';
 import { DomainIcon } from './DomainIcon';
 import { PartnerSelector } from './PartnerSelector';
 import { DreamImageUploader } from './DreamImageUploader';
+import { ProgressImageEditor } from './ProgressImageEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -23,10 +25,16 @@ import {
   Sparkles,
   Loader2,
   Check,
+  RefreshCw,
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { 
+  checkForProgressSuggestion, 
+  updateImageWithProgress,
+  initializeProgressMetadata,
+} from '@/lib/image-progress-tracking';
 
 interface DreamModalProps {
   dream: Dream | null;
@@ -46,8 +54,18 @@ export function DreamModal({ dream, open, onOpenChange }: DreamModalProps) {
   const [newStepTitle, setNewStepTitle] = useState('');
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [hasGeneratedSuggestions, setHasGeneratedSuggestions] = useState(false);
+  const [progressEditorOpen, setProgressEditorOpen] = useState(false);
+  const [progressSuggestion, setProgressSuggestion] = useState<any>(null);
   
   if (!dream) return null;
+  
+  // Check for progress suggestions when modal opens
+  useEffect(() => {
+    if (open && dream) {
+      const suggestion = checkForProgressSuggestion(dream);
+      setProgressSuggestion(suggestion);
+    }
+  }, [open, dream]);
   
   const domainInfo = DOMAINS.find(d => d.key === dream.domain);
   const timeframeInfo = TIMEFRAMES.find(t => t.key === dream.timeFrame);
@@ -83,8 +101,38 @@ export function DreamModal({ dream, open, onOpenChange }: DreamModalProps) {
   };
 
   const handleImageChange = (imageUrl: string | undefined) => {
-    updateDream(dream.id, { imageUrl });
+    // Initialize progress metadata if this is a new image
+    if (imageUrl && !dream.progressImageMetadata) {
+      const metadata = initializeProgressMetadata(
+        imageUrl,
+        dream.description,
+        dream.title
+      );
+      updateDream(dream.id, { imageUrl, progressImageMetadata: metadata });
+    } else {
+      updateDream(dream.id, { imageUrl });
+    }
     toast.success(imageUrl ? 'Image updated' : 'Image removed');
+  };
+
+  const handleProgressUpdate = async (changes: string) => {
+    try {
+      const result = await updateImageWithProgress(dream, changes, 'user');
+      updateDream(dream.id, {
+        imageUrl: result.imageUrl,
+        progressImageMetadata: result.updatedMetadata,
+      });
+      toast.success('Vision image updated with your progress!');
+    } catch (error) {
+      console.error('Failed to update progress image:', error);
+      toast.error('Failed to update image. Please try again.');
+      throw error;
+    }
+  };
+
+  const dismissProgressSuggestion = () => {
+    setProgressSuggestion(null);
+    toast('Suggestion dismissed. We\'ll remind you again in 2 weeks.');
   };
 
   const handleGenerateSuggestions = async () => {
@@ -188,6 +236,52 @@ export function DreamModal({ dream, open, onOpenChange }: DreamModalProps) {
         </DialogHeader>
         
         <div className="space-y-6 py-4">
+          {/* Progress Suggestion Card */}
+          {progressSuggestion && !progressSuggestion.dismissed && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary-glow/10 border border-primary/20"
+            >
+              <div className="flex items-center gap-2 text-xs font-medium text-primary mb-2">
+                <RefreshCw className="w-3.5 h-3.5" />
+                PROGRESS UPDATE AVAILABLE
+              </div>
+              <p className="text-sm text-foreground mb-3">
+                {progressSuggestion.description}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => setProgressEditorOpen(true)}
+                >
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Update Vision
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={dismissProgressSuggestion}
+                >
+                  Later
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Update Vision Button (when there's an image but no pending suggestion) */}
+          {dream.imageUrl && !progressSuggestion && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => setProgressEditorOpen(true)}
+            >
+              <RefreshCw className="w-3 h-3 mr-2" />
+              Update Vision Image Based on Progress
+            </Button>
+          )}
+
           {/* Next Action Card */}
           {nextStep && (
             <motion.div
@@ -388,6 +482,14 @@ export function DreamModal({ dream, open, onOpenChange }: DreamModalProps) {
           </Button>
         </div>
       </DialogContent>
+
+      {/* Progress Image Editor Modal */}
+      <ProgressImageEditor
+        dream={dream}
+        open={progressEditorOpen}
+        onOpenChange={setProgressEditorOpen}
+        onUpdate={handleProgressUpdate}
+      />
     </Dialog>
   );
 }

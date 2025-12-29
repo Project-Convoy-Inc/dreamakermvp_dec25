@@ -1,42 +1,55 @@
 import { useEffect, useState } from 'react';
-import { Sparkles, AlertCircle } from 'lucide-react';
+import { Sparkles, AlertCircle, LogOut, SkipForward } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { generateImageWithWebhook } from '@/lib/webhooks';
+import { enhancePrompt } from '@/lib/prompt-enhancement';
 
 interface GeneratingStepProps {
   onComplete: (imageUrl: string) => void;
+  onSkip: () => void;
+  onSaveAndExit: () => void;
   whatYouWant?: string;
   visionDescription?: string;
   userPhotos?: string[];
 }
 
 export function GeneratingStep({ 
-  onComplete, 
+  onComplete,
+  onSkip,
+  onSaveAndExit,
   whatYouWant, 
   visionDescription, 
   userPhotos 
 }: GeneratingStepProps) {
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
+  const [showSkipOption, setShowSkipOption] = useState(false);
 
   useEffect(() => {
+    // Show skip option after 30 seconds
+    const skipTimer = setTimeout(() => {
+      setShowSkipOption(true);
+    }, 30000);
+
     const generateImage = async () => {
       setError(null);
       setIsGenerating(true);
 
-      // Build prompt from onboarding context
-      const promptParts = [];
-      if (whatYouWant) {
-        promptParts.push(`Dream: ${whatYouWant}`);
-      }
-      if (visionDescription) {
-        promptParts.push(`Vision: ${visionDescription}`);
-      }
+      // Enhance prompt automatically in the background
+      let prompt: string;
       
-      const prompt = promptParts.length > 0 
-        ? promptParts.join('. ') 
-        : 'A beautiful inspiring vision of success and achievement';
+      if (visionDescription || whatYouWant) {
+        const enhanced = enhancePrompt({
+          visionDescription: visionDescription || '',
+          whatYouWant,
+          includeProgressTracking: true,
+        });
+        prompt = enhanced.enhanced;
+        console.log('Enhanced prompt applied:', enhanced.styleApplied);
+      } else {
+        prompt = 'A beautiful inspiring vision of success and achievement';
+      }
 
       try {
         const imageUrl = await generateImageWithWebhook({
@@ -52,23 +65,33 @@ export function GeneratingStep({
     };
 
     generateImage();
+
+    return () => clearTimeout(skipTimer);
   }, [onComplete, whatYouWant, visionDescription, userPhotos]);
 
   const handleRetry = () => {
     setError(null);
     setIsGenerating(true);
+    setShowSkipOption(false);
     
-    const promptParts = [];
-    if (whatYouWant) {
-      promptParts.push(`Dream: ${whatYouWant}`);
-    }
-    if (visionDescription) {
-      promptParts.push(`Vision: ${visionDescription}`);
-    }
+    // Reset skip timer
+    setTimeout(() => {
+      setShowSkipOption(true);
+    }, 30000);
     
-    const prompt = promptParts.length > 0 
-      ? promptParts.join('. ') 
-      : 'A beautiful inspiring vision of success and achievement';
+    // Enhance prompt automatically in the background
+    let prompt: string;
+    
+    if (visionDescription || whatYouWant) {
+      const enhanced = enhancePrompt({
+        visionDescription: visionDescription || '',
+        whatYouWant,
+        includeProgressTracking: true,
+      });
+      prompt = enhanced.enhanced;
+    } else {
+      prompt = 'A beautiful inspiring vision of success and achievement';
+    }
 
     generateImageWithWebhook({
       prompt,
@@ -105,10 +128,23 @@ export function GeneratingStep({
               {error}
             </p>
 
-            <Button onClick={handleRetry} size="lg">
-              <Sparkles className="w-5 h-5 mr-2" />
-              Try Again
-            </Button>
+            <div className="flex flex-col items-center gap-3">
+              <Button onClick={handleRetry} size="lg">
+                <Sparkles className="w-5 h-5 mr-2" />
+                Try Again
+              </Button>
+              
+              <div className="flex gap-2">
+                <Button onClick={onSkip} variant="outline" size="sm">
+                  <SkipForward className="w-4 h-4 mr-2" />
+                  Skip for now
+                </Button>
+                <Button onClick={onSaveAndExit} variant="ghost" size="sm">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Save & Exit
+                </Button>
+              </div>
+            </div>
           </>
         ) : (
           <>
@@ -127,9 +163,33 @@ export function GeneratingStep({
               Bringing your vision to life...
             </h1>
 
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-2">
               This usually takes 1-2 minutes
             </p>
+
+            <p className="text-sm text-muted-foreground/80 max-w-md mx-auto mb-6">
+              We're creating your base vision image with elements you can update as you make progress
+            </p>
+
+            {showSkipOption && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center gap-2 mt-4"
+              >
+                <p className="text-sm text-muted-foreground mb-2">Taking longer than expected?</p>
+                <div className="flex gap-2">
+                  <Button onClick={onSkip} variant="outline" size="sm">
+                    <SkipForward className="w-4 h-4 mr-2" />
+                    Skip image generation
+                  </Button>
+                  <Button onClick={onSaveAndExit} variant="ghost" size="sm">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Save & Exit
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </>
         )}
       </div>
