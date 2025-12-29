@@ -2,64 +2,105 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useSearchParams, useNavigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Navigation } from "@/components/layout/Navigation";
 import { SidekickChatWidget } from "@/components/sidekick/SidekickChatWidget";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { SyncStatus } from "@/components/ui/sync-status";
 import { useUserStore } from "@/stores/userStore";
-import Index from "./pages/Index";
-import Convoy from "./pages/Convoy";
-import Progress from "./pages/Progress";
-import Onboarding from "./pages/Onboarding";
-import NotFound from "./pages/NotFound";
+import { useEffect, lazy, Suspense } from "react";
+import { VisionBoardSkeleton, ProgressPageSkeleton } from "@/components/ui/loading-skeleton";
+
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const Convoy = lazy(() => import("./pages/Convoy"));
+const Progress = lazy(() => import("./pages/Progress"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
 function AppContent() {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:18',message:'AppContent render start',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
-  
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const profile = useUserStore((state) => state.profile);
   const isOnboardingComplete = useUserStore((state) => state.isOnboardingComplete);
+  const setProfile = useUserStore((state) => state.setProfile);
+  const setOnboardingComplete = useUserStore((state) => state.setOnboardingComplete);
 
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:23',message:'AppContent - store values',data:{hasProfile:!!profile,isOnboardingComplete,profileName:profile?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
+  // Dev bypass: Skip onboarding with ?skipOnboarding=true (only in development)
+  // Check this FIRST before the onboarding check
+  const skipOnboarding = searchParams.get('skipOnboarding') === 'true';
+  const isDev = import.meta.env.DEV;
+  
+  useEffect(() => {
+    if (skipOnboarding && isDev) {
+      // Clear any existing onboarding state
+      localStorage.removeItem('dreamaker_onboarding_state');
+      
+      // Set up test user if not already set
+      if (!profile) {
+        setProfile({
+          name: "Test User",
+          email: "test@example.com"
+        });
+      }
+      
+      // Mark onboarding as complete
+      if (!isOnboardingComplete) {
+        setOnboardingComplete(true);
+      }
+      
+      // Remove the parameter from URL and navigate to home
+      navigate('/', { replace: true });
+    }
+  }, [skipOnboarding, isDev, profile, isOnboardingComplete, setProfile, setOnboardingComplete, navigate]);
+
+  // If bypass is active, don't show onboarding (even if state hasn't updated yet)
+  if (skipOnboarding && isDev) {
+    // Return null or a loading state while the effect runs
+    // The effect will navigate away, so this is just a brief moment
+    return null;
+  }
 
   // If no profile or onboarding not complete, show onboarding
   if (!profile || !isOnboardingComplete) {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:27',message:'AppContent - returning Onboarding',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
-    return <Onboarding />;
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">
+          <div className="animate-pulse text-lg text-muted-foreground">Loading...</div>
+        </div>}>
+          <Onboarding />
+        </Suspense>
+      </ErrorBoundary>
+    );
   }
 
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:33',message:'AppContent - returning main app',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
-
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      <main className="container pt-20 md:pt-24 pb-24 md:pb-8">
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/convoy" element={<Convoy />} />
-          <Route path="/progress" element={<Progress />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      <SidekickChatWidget />
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <OfflineIndicator />
+        <SyncStatus />
+        <Navigation />
+        <main className="container pt-20 md:pt-24 pb-24 md:pb-8">
+          <Suspense fallback={<VisionBoardSkeleton />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/convoy" element={<Convoy />} />
+              <Route path="/progress" element={<Suspense fallback={<ProgressPageSkeleton />}><Progress /></Suspense>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </main>
+        <SidekickChatWidget />
+      </div>
+    </ErrorBoundary>
   );
 }
 
 const App = () => {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:43',message:'App component render start',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
-  
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>

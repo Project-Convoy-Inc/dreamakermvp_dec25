@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
-import { useUserStore } from '@/stores/userStore';
+import { useUserStore, UserRole } from '@/stores/userStore';
 import { toast } from 'sonner';
 import dreamakerLogo from '@/assets/dreamaker-welcome-logo.png';
 
@@ -12,17 +13,10 @@ interface WelcomeStepProps {
 }
 
 export function WelcomeStep({ onNext }: WelcomeStepProps) {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WelcomeStep.tsx:14',message:'WelcomeStep render start',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
-  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState<UserRole>('user');
   const setProfile = useUserStore((state) => state.setProfile);
-
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WelcomeStep.tsx:20',message:'WelcomeStep - hooks initialized',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
 
   const handleContinue = () => {
     if (!name.trim()) {
@@ -38,14 +32,10 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
       toast.error('Please enter a valid email address');
       return;
     }
-    setProfile({ name: name.trim(), email: email.trim() });
+    setProfile({ name: name.trim(), email: email.trim(), role });
     onNext();
   };
 
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WelcomeStep.tsx:37',message:'WelcomeStep - about to return JSX',data:{logoPath:dreamakerLogo},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
-  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -104,6 +94,20 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
               className="text-center text-lg"
               onKeyDown={(e) => e.key === 'Enter' && handleContinue()}
             />
+          </div>
+          <div>
+            <Label htmlFor="user-role" className="text-left block mb-2 text-muted-foreground">
+              Select your role
+            </Label>
+            <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+              <SelectTrigger id="user-role" className="text-lg">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

@@ -620,7 +620,169 @@ To be implemented
 
 ---
 
-## 11. Onboarding Process Optimization
+## 11. Partner Visibility & Collaboration Features
+
+### Current State
+Users can add accountability partners to their dreams through the Convoy feature (`dream_partners` table). Partners are assigned to specific goals but have limited visibility into each other's progress.
+
+### Context
+**Important Note:** This enhancement is about **accountability partner features**, not a user role. All users are "user" role by default. The term "partner" here refers to the relationship between users who support each other's dreams, not an elevated permission level.
+
+### Enhancement Details
+
+#### 11.1 Partner Progress Visibility
+- **Feature**: Give users visibility into their accountability partners' dream progress
+- **Purpose**: Enable mutual support and encouragement
+- **Scope**: 
+  - View partner's active dreams (with permission)
+  - See progress updates on shared or assigned dreams
+  - Track milestone completions
+  - Celebrate achievements together
+
+#### 11.2 Shared Dream Dashboard
+- **Feature**: Combined view of user + partners' active dreams
+- **Display**:
+  - Side-by-side progress comparison
+  - Shared milestones view
+  - Combined activity feed
+- **Purpose**: Create collaborative accountability experience
+- **Use Case**: Accountability partners can see each other's journey
+
+#### 11.3 Privacy & Sharing Controls
+- **Feature**: Granular privacy controls for what partners can see
+- **Controls**:
+  - Per-dream visibility settings (public to partners, private, specific partners only)
+  - Option to hide specific dreams from accountability partners
+  - Choose which progress updates are shared
+  - Control what appears in partner notifications
+- **Default**: Privacy-first approach, users opt-in to sharing
+- **Purpose**: Respect user privacy while enabling collaboration
+
+#### 11.4 Partner Interaction Features
+- **Comments on Progress**: 
+  - Partners can comment on each other's progress updates
+  - Encouraging messages and support
+  
+- **Reactions to Achievements**: 
+  - React to completed milestones (🎉, 👏, 💪, ❤️)
+  - Celebrate wins together
+  
+- **Encouragement Messages**: 
+  - Send direct encouragement messages
+  - Check-in prompts when partner seems stuck
+  - "How's it going?" quick messages
+
+#### 11.5 Collaborative Features
+- **Shared Activities**: 
+  - Partners working on similar goals can share activities
+  - "My partner found this helpful" suggestions
+  
+- **Joint Progress Tracking**: 
+  - For shared dreams, track combined progress
+  - Collaborative milestones
+  
+- **Partner Check-ins**: 
+  - Scheduled mutual check-ins
+  - Progress review sessions
+  - Goal accountability meetings
+
+#### 11.6 Notification Enhancements
+- **Partner Progress Notifications**:
+  - Get notified when partner completes a milestone
+  - Updates when partner adds new dreams
+  - Alerts when partner needs support (optional, user-controlled)
+  
+- **Smart Timing**: 
+  - Notifications sent at user-preferred times
+  - Batch notifications to reduce overwhelm
+  - Weekly summary of partner progress option
+
+### Implementation Considerations
+
+#### Technical Requirements
+- **Database**: Already have `dream_partners` table for relationships
+- **New Tables Needed**:
+  - `partner_visibility_settings` - privacy controls per dream
+  - `partner_interactions` - comments, reactions, messages
+  - `partner_notifications` - notification preferences
+  
+- **No New User Role**: All functionality available to regular "user" role
+- **Permission Model**: Based on relationship (dream_partners table), not role
+
+#### User Experience
+- **Opt-in Flow**: 
+  1. User adds accountability partner (existing feature)
+  2. Platform prompts: "Would you like to share progress with [partner]?"
+  3. User chooses sharing level
+  4. Partner receives invitation to mutual sharing
+  5. Both users can adjust settings anytime
+
+- **Discovery**: 
+  - Feature is optional and discoverable
+  - Users can use Convoy without visibility features
+  - Progressive disclosure of advanced features
+
+#### Privacy-First Design
+- **Core Principles**:
+  - Default to private unless user opts to share
+  - Explicit consent for each level of sharing
+  - Easy to revoke access at any time
+  - Clear indicators of what's visible to partners
+  
+- **User Control**:
+  - Global privacy settings
+  - Per-dream override settings
+  - Per-partner visibility levels
+  - Audit log of what's been shared
+
+### User Stories
+
+**As a user**, I want to see my accountability partner's progress so I can cheer them on and stay motivated together.
+
+**As a user**, I want to control which dreams my partners can see so I can maintain privacy on personal goals.
+
+**As a user**, I want to comment on my partner's achievements so I can show support and encouragement.
+
+**As a user**, I want to be notified when my partner completes a milestone so I can celebrate with them.
+
+**As a user**, I want to see a combined view of my and my partner's progress so we can track our journeys together.
+
+### Success Metrics
+
+- **Engagement**: Increase in accountability partner assignments
+- **Interaction**: Number of partner comments/reactions per week
+- **Retention**: Users with active partners have higher retention
+- **Satisfaction**: User feedback on partner visibility features
+- **Privacy**: Low rate of privacy-related complaints or concerns
+
+### Differentiator from Existing Features
+
+**Current Convoy Features (Exists):**
+- Add accountability partners
+- Assign partners to specific dreams
+- Partners exist in database
+
+**New Partner Visibility Features (This Enhancement):**
+- Partners can *see* each other's progress
+- Partners can *interact* with progress
+- Mutual encouragement and support
+- Collaborative accountability experience
+
+### Priority
+🟡 Medium - Enhances existing Convoy feature, builds on established infrastructure
+
+### Status
+Planned for future implementation
+
+### Dependencies
+- Convoy feature (existing ✅)
+- dream_partners table (existing ✅)
+- Privacy settings framework
+- Notification system enhancements
+
+---
+
+## 12. Onboarding Process Optimization
 
 ### Current State
 Onboarding process is straightforward and interactive but may be lengthy.
@@ -666,7 +828,8 @@ To be evaluated and implemented
 5. ✅ Progress/Insights Enhancement (time-based recaps, metrics, progress celebration, analytics & impact measurement)
 6. ✅ Convoy/Accountability Enhancement (nudges, proactive support)
 7. ✅ Journal Enhancement (automated capture integration)
-11. ✅ Onboarding Process Optimization (length optimization, research activities)
+11. ✅ Partner Visibility & Collaboration Features (progress visibility, shared dashboard, privacy controls)
+12. ✅ Onboarding Process Optimization (length optimization, research activities)
 
 ### Low-Medium Priority (Post-MVP)
 8. ✅ Coaching Support (new component)

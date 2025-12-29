@@ -14,10 +14,6 @@ interface OnboardingMenuProps {
 }
 
 export function OnboardingMenu({ onSaveAndExit }: OnboardingMenuProps) {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/feb1086c-34ad-4765-afda-bd41b3f8dda0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OnboardingMenu.tsx:16',message:'OnboardingMenu render',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
-  
   const navigate = useNavigate();
 
   const handleLogout = () => {

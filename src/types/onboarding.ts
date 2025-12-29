@@ -1,5 +1,8 @@
+import { UserRole } from '@/stores/userStore';
+
 export interface OnboardingState {
   sidekickAvatar: number | null;
+  userRole: UserRole | null;
   whatYouWant: string;
   visionDescription: string;
   currentStatus: string;
@@ -13,6 +16,7 @@ export interface OnboardingState {
 
 export const initialOnboardingState: OnboardingState = {
   sidekickAvatar: null,
+  userRole: null,
   whatYouWant: '',
   visionDescription: '',
   currentStatus: '',

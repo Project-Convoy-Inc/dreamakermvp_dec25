@@ -3,7 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
-import { Sparkles, Pencil, Check, X } from 'lucide-react';
+import { Sparkles, Pencil, Check, X, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface CelebrationStepProps {
   imageUrl: string;
@@ -161,17 +167,45 @@ export function CelebrationStep({
           Your vision is ready! ✨
         </h1>
 
-        <p className="text-muted-foreground text-center mb-8">
-          You can edit anything to regenerate the image until it meets your expectations
-        </p>
+        {imageUrl ? (
+          <>
+            <p className="text-muted-foreground text-center mb-2">
+              This is your <strong>base vision image</strong>. You can edit it now or update it later as your vision becomes clearer.
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-6">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 cursor-help">
+                      <Info className="w-4 h-4" />
+                      <span>Track your progress visually</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      As you make progress on your vision, you can update this image to reflect your achievements. 
+                      For example, if your goal is to read more books, you can update the image to show the books you've completed!
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </>
+        ) : (
+          <p className="text-muted-foreground text-center mb-8">
+            You can generate your vision image later from your vision board
+          </p>
+        )}
 
-        <div className="flex justify-center mb-8">
-          <img
-            src={imageUrl}
-            alt="Your generated vision"
-            className="max-h-[500px] object-contain rounded-xl shadow-2xl"
-          />
-        </div>
+        {imageUrl && (
+          <div className="flex justify-center mb-8">
+            <img
+              src={imageUrl}
+              alt="Your generated vision"
+              className="max-h-[500px] object-contain rounded-xl shadow-2xl"
+            />
+          </div>
+        )}
 
         <div className="grid gap-3 mb-8">
           <CompactCard
@@ -197,13 +231,27 @@ export function CelebrationStep({
         </div>
 
         <div className="flex items-center justify-center gap-4">
-          <Button variant="outline" onClick={onRegenerate}>
-            <Sparkles className="mr-2 h-4 w-4" />
-            Regenerate image
-          </Button>
-          <Button size="lg" onClick={onContinue}>
-            Continue
-          </Button>
+          {imageUrl ? (
+            <>
+              <Button variant="outline" onClick={onRegenerate}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Regenerate image
+              </Button>
+              <Button size="lg" onClick={onContinue}>
+                Continue
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={onRegenerate}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate image now
+              </Button>
+              <Button size="lg" onClick={onContinue}>
+                Continue without image
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </motion.div>
