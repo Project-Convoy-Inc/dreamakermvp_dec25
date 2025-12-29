@@ -24,12 +24,12 @@ interface RoleBasedUIProps {
  * </RoleBasedUI>
  * 
  * @example
- * // Show content to admins or partners, with fallback
+ * // Show content with fallback for non-admins
  * <RoleBasedUI 
- *   requiredRole={['admin', 'partner']}
- *   fallback={<p>Upgrade to partner to access this feature</p>}
+ *   requiredRole="admin"
+ *   fallback={<p>Contact your administrator for access</p>}
  * >
- *   <PartnerFeatures />
+ *   <AdminFeatures />
  * </RoleBasedUI>
  */
 export function RoleBasedUI({
@@ -61,9 +61,9 @@ export function RoleBasedUI({
  * Useful for hiding features from certain roles.
  * 
  * @example
- * // Hide premium features from free users
+ * // Hide admin tools from regular users
  * <HideForRole role="user">
- *   <PremiumFeature />
+ *   <AdminTools />
  * </HideForRole>
  */
 export function HideForRole({
@@ -92,19 +92,16 @@ export function HideForRole({
  * @example
  * <RoleSwitcher
  *   user={<UserDashboard />}
- *   partner={<PartnerDashboard />}
  *   admin={<AdminDashboard />}
  *   fallback={<LoadingScreen />}
  * />
  */
 export function RoleSwitcher({
   user,
-  partner,
   admin,
   fallback = null,
 }: {
   user?: ReactNode;
-  partner?: ReactNode;
   admin?: ReactNode;
   fallback?: ReactNode;
 }) {
@@ -118,8 +115,6 @@ export function RoleSwitcher({
   switch (role) {
     case 'user':
       return <>{user ?? fallback}</>;
-    case 'partner':
-      return <>{partner ?? fallback}</>;
     case 'admin':
       return <>{admin ?? fallback}</>;
     default:
@@ -135,10 +130,10 @@ export function RoleSwitcher({
  * 
  * @example
  * <RequireRole 
- *   requiredRole="partner"
- *   message="Upgrade to Partner to access this feature"
+ *   requiredRole="admin"
+ *   message="Admin access required for this feature"
  * >
- *   <PartnerOnlyFeature />
+ *   <AdminOnlyFeature />
  * </RequireRole>
  */
 export function RequireRole({

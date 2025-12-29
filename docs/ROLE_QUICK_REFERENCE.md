@@ -1,12 +1,13 @@
 # Role-Based Access Control - Quick Reference
 
-## 🎯 The Three Roles
+## 🎯 The Two Roles
 
 | Role | Icon | Description | Key Features |
 |------|------|-------------|--------------|
-| **user** | 👤 | Individual dreamer | Personal dreams, progress tracking, Sidekick AI |
-| **partner** | 👥 | Dream supporter | + Collaboration, shared dreams, partner support |
-| **admin** | 🛡️ | Platform admin | + User management, analytics, full access |
+| **user** | 👤 | Individual dreamer | Personal dreams, progress tracking, Sidekick AI, accountability partners |
+| **admin** | 🛡️ | Platform admin | All user features + user management, analytics, full platform access |
+
+**Note:** "Partners" refers to accountability partners (a feature), not a user role.
 
 ---
 
@@ -14,7 +15,7 @@
 
 ### 1️⃣ Database Setup
 ```sql
-CREATE TYPE user_role AS ENUM ('user', 'admin', 'partner');
+CREATE TYPE user_role AS ENUM ('user', 'admin');
 ALTER TABLE profiles ADD COLUMN role user_role DEFAULT 'user' NOT NULL;
 ```
 
@@ -59,9 +60,9 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
   <AdminPage />
 </ProtectedRoute>
 
-// Multiple roles
-<ProtectedRoute requiredRole={['admin', 'partner']}>
-  <SharedPage />
+// Admin only
+<ProtectedRoute requiredRole="admin">
+  <AdminPage />
 </ProtectedRoute>
 
 // Show access denied
@@ -82,10 +83,10 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 // With fallback
 <RoleBasedUI 
-  requiredRole="partner"
-  fallback={<UpgradePrompt />}
+  requiredRole="admin"
+  fallback={<AccessDenied />}
 >
-  <PartnerFeature />
+  <AdminFeature />
 </RoleBasedUI>
 ```
 
@@ -104,7 +105,6 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 ```tsx
 <RoleSwitcher
   user={<UserDashboard />}
-  partner={<PartnerDashboard />}
   admin={<AdminDashboard />}
 />
 ```
@@ -133,7 +133,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useHasRole } from '@/components/ProtectedRoute';
 
 const isAdmin = useHasRole('admin');
-const canCollaborate = useHasRole(['partner', 'admin']);
+const isUser = useHasRole('user');
 
 if (isAdmin) {
   // Do admin thing
@@ -151,7 +151,6 @@ const role = useUserRole();
 
 switch (role) {
   case 'admin': return <AdminUI />;
-  case 'partner': return <PartnerUI />;
   default: return <UserUI />;
 }
 ```
@@ -229,17 +228,17 @@ function Dashboard() {
 }
 ```
 
-### Pattern 4: Role-Based Form Fields
+### Pattern 4: Role-Based Features
 ```tsx
-function Form() {
-  const canShare = useHasRole(['partner', 'admin']);
+function DreamCard() {
+  const isAdmin = useHasRole('admin');
   
   return (
-    <form>
-      <Input label="Title" />
-      {canShare && <PartnerSelector />}
-      <Button>Save</Button>
-    </form>
+    <Card>
+      <Title />
+      <Content />
+      {isAdmin && <AdminActions />}
+    </Card>
   );
 }
 ```

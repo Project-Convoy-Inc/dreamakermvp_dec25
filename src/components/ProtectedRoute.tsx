@@ -28,9 +28,9 @@ interface ProtectedRouteProps {
  * </ProtectedRoute>
  * 
  * @example
- * // Protect route for admins or partners
- * <ProtectedRoute requiredRole={['admin', 'partner']}>
- *   <SharedDashboard />
+ * // Protect route for admins only
+ * <ProtectedRoute requiredRole="admin">
+ *   <AdminDashboard />
  * </ProtectedRoute>
  * 
  * @example
@@ -93,7 +93,7 @@ export function ProtectedRoute({
  * 
  * @example
  * const canAccessAdmin = useHasRole('admin');
- * const canAccessDashboard = useHasRole(['admin', 'partner']);
+ * const isAdmin = useHasRole('admin');
  */
 export function useHasRole(role: UserRole | UserRole[]): boolean {
   return useUserStore((state) => state.hasRole(role));

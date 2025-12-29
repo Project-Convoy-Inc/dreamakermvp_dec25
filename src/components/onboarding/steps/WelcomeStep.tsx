@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
-import { useUserStore } from '@/stores/userStore';
+import { useUserStore, UserRole } from '@/stores/userStore';
 import { toast } from 'sonner';
 import dreamakerLogo from '@/assets/dreamaker-welcome-logo.png';
 
@@ -14,6 +15,7 @@ interface WelcomeStepProps {
 export function WelcomeStep({ onNext }: WelcomeStepProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState<UserRole>('user');
   const setProfile = useUserStore((state) => state.setProfile);
 
   const handleContinue = () => {
@@ -30,7 +32,7 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
       toast.error('Please enter a valid email address');
       return;
     }
-    setProfile({ name: name.trim(), email: email.trim() });
+    setProfile({ name: name.trim(), email: email.trim(), role });
     onNext();
   };
 
@@ -92,6 +94,20 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
               className="text-center text-lg"
               onKeyDown={(e) => e.key === 'Enter' && handleContinue()}
             />
+          </div>
+          <div>
+            <Label htmlFor="user-role" className="text-left block mb-2 text-muted-foreground">
+              Select your role
+            </Label>
+            <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+              <SelectTrigger id="user-role" className="text-lg">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
