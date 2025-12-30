@@ -1,43 +1,44 @@
 /**
- * Secure Image Generation via Supabase Edge Function
+ * Google Gemini API Provider (Secure)
  * 
- * This module calls a Supabase Edge Function that securely handles
- * the Gemini API key. The API key is NEVER exposed to the browser.
+ * Calls a Supabase Edge Function to generate images.
+ * The API key is stored securely in Supabase secrets, NOT in the browser.
  * 
  * Architecture:
  * Browser → Supabase Edge Function → Google Gemini API
  *                    ↑
- *            (API key stored here, hidden from users)
+ *          GEMINI_API_KEY stored here (hidden from users)
  */
 
-// Supabase URL from environment (this is safe to expose)
+// Supabase URL (safe to expose - it's meant to be public)
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Timeout for image generation (90 seconds)
-const GENERATION_TIMEOUT = 90000;
+const GENERATION_TIMEOUT = 90000; // 90 seconds
 
-interface GenerateImageParams {
+const NANO_BANANA_MODELS = {
+  fast: 'gemini-2.5-flash-image',
+  pro: 'gemini-3-pro-image-preview',
+} as const;
+
+export interface GeminiImageParams {
   prompt: string;
   model?: 'fast' | 'pro';
 }
 
-interface GenerateImageResponse {
+export interface GeminiImageResponse {
   imageUrl: string;
   mimeType: string;
 }
 
 /**
- * Generates an image by calling the secure Supabase Edge Function
- * 
- * @param params.prompt - The text description of the image to generate
- * @param params.model - 'fast' (default) or 'pro' for higher quality
- * @returns Promise with imageUrl (base64 data URL) and mimeType
+ * Generates an image via secure Supabase Edge Function
+ * The Edge Function calls Google's Gemini API with the secret key
  */
 export async function generateImageWithGemini({
   prompt,
   model = 'fast',
-}: GenerateImageParams): Promise<GenerateImageResponse> {
+}: GeminiImageParams): Promise<GeminiImageResponse> {
   if (!SUPABASE_URL) {
     throw new Error(
       'Supabase URL is not configured. Please set VITE_SUPABASE_URL environment variable.'
@@ -56,7 +57,7 @@ export async function generateImageWithGemini({
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), GENERATION_TIMEOUT);
 
-    console.log('Calling secure image generation service...');
+    console.log(`Generating image with Nano Banana (${NANO_BANANA_MODELS[model]})...`);
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -74,7 +75,7 @@ export async function generateImageWithGemini({
     const data = await response.json();
 
     if (!response.ok) {
-      // Use the error message from the server, or a default
+      // Use the error message from the Edge Function
       throw new Error(data.error || `Request failed with status ${response.status}`);
     }
 
@@ -98,19 +99,16 @@ export async function generateImageWithGemini({
 }
 
 /**
- * Check if the image generation service is configured
- * (Just checks if Supabase URL is set - the Edge Function handles the API key)
+ * Check if Gemini is configured
+ * (Only checks Supabase URL - the Edge Function handles the API key)
  */
 export function isGeminiConfigured(): boolean {
   return !!SUPABASE_URL;
 }
 
 /**
- * Get available model options
+ * Get available Nano Banana models
  */
 export function getAvailableModels() {
-  return {
-    fast: 'gemini-2.5-flash-image',      // Speed optimized
-    pro: 'gemini-3-pro-image-preview',   // Quality optimized
-  };
+  return NANO_BANANA_MODELS;
 }

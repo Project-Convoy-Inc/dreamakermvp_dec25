@@ -22,9 +22,15 @@ export function useGenerateDreamContent(): UseGenerateDreamContentReturn {
     timeFrame: string
   ): Promise<GeneratedContent | null> => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl) {
       setError('Supabase URL not configured');
+      return null;
+    }
+
+    if (!supabaseAnonKey) {
+      setError('Supabase anon key not configured');
       return null;
     }
 
@@ -38,6 +44,8 @@ export function useGenerateDreamContent(): UseGenerateDreamContentReturn {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`,
           },
           body: JSON.stringify({ description, domain, timeFrame }),
         }
