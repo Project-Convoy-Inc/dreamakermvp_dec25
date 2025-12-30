@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, CloudOff, RefreshCw, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getStorageItem, safeRemoveItem } from '@/lib/storage';
+import { STORAGE_KEYS } from '@/constants/storage-keys';
 
 interface SyncStatusProps {
   className?: string;
@@ -40,15 +42,10 @@ export function SyncStatus({ className }: SyncStatusProps) {
   }, [pendingChanges]);
 
   const checkPendingChanges = () => {
-    // Check localStorage for any pending sync items
-    const pending = localStorage.getItem('dreamaker_pending_sync');
+    // Check storage for any pending sync items
+    const pending = getStorageItem<string[]>(STORAGE_KEYS.PENDING_SYNC);
     if (pending) {
-      try {
-        const items = JSON.parse(pending);
-        setPendingChanges(items.length || 0);
-      } catch {
-        setPendingChanges(0);
-      }
+      setPendingChanges(pending.length || 0);
     }
   };
 
@@ -62,7 +59,7 @@ export function SyncStatus({ className }: SyncStatusProps) {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Clear pending changes
-      localStorage.removeItem('dreamaker_pending_sync');
+      safeRemoveItem(STORAGE_KEYS.PENDING_SYNC);
       setPendingChanges(0);
       
       setSyncState('synced');

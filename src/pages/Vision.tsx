@@ -4,9 +4,10 @@ import { Helmet } from 'react-helmet-async';
 
 export default function Vision() {
   const handleRefresh = async () => {
-    // Reload vision board data
-    await new Promise(resolve => setTimeout(resolve, 800));
-    window.location.reload();
+    // Trigger refresh animation
+    // Data is managed by Zustand store which is reactive
+    // No need to reload the entire page
+    await new Promise((resolve) => setTimeout(resolve, 300));
   };
 
   return (

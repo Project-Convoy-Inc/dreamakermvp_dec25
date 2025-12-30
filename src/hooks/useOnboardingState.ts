@@ -1,19 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { OnboardingState, initialOnboardingState } from '@/types/onboarding';
-
-const STORAGE_KEY = 'dreamaker_onboarding_state';
+import { getStorageItem, setStorageItem, safeRemoveItem } from '@/lib/storage';
+import { STORAGE_KEYS } from '@/constants/storage-keys';
 
 export function useOnboardingState() {
   const [state, setState] = useState<OnboardingState>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = getStorageItem<OnboardingState>(STORAGE_KEYS.ONBOARDING_STATE);
     if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Don't restore files from localStorage
-        return { ...parsed, uploadedMaterials: [] };
-      } catch {
-        return initialOnboardingState;
-      }
+      // Don't restore files from localStorage
+      return { ...saved, uploadedMaterials: [] };
     }
     return initialOnboardingState;
   });
@@ -21,7 +16,7 @@ export function useOnboardingState() {
   useEffect(() => {
     // Save state without files (can't serialize File objects)
     const toSave = { ...state, uploadedMaterials: [] };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    setStorageItem(STORAGE_KEYS.ONBOARDING_STATE, toSave);
   }, [state]);
 
   const updateState = useCallback((updates: Partial<OnboardingState>) => {
@@ -41,7 +36,7 @@ export function useOnboardingState() {
   }, []);
 
   const clearState = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
+    safeRemoveItem(STORAGE_KEYS.ONBOARDING_STATE);
     setState(initialOnboardingState);
   }, []);
 

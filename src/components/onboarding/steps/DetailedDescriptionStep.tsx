@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import { VoiceInputButton } from '../VoiceInputButton';
+import { VoiceInputButton } from '@/components/onboarding/VoiceInputButton';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { ROTATING_PROMPTS } from '@/types/onboarding';
 

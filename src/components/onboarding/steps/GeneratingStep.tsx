@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Sparkles, AlertCircle, LogOut, SkipForward } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { generateImageWithWebhook } from '@/lib/webhooks';
+import { generateImage } from '@/lib/image-service';
 import { enhancePrompt } from '@/lib/prompt-enhancement';
 
 interface GeneratingStepProps {
@@ -32,7 +32,7 @@ export function GeneratingStep({
       setShowSkipOption(true);
     }, 30000);
 
-    const generateImage = async () => {
+    const generateVisionImage = async () => {
       setError(null);
       setIsGenerating(true);
 
@@ -52,7 +52,7 @@ export function GeneratingStep({
       }
 
       try {
-        const imageUrl = await generateImageWithWebhook({
+        const imageUrl = await generateImage({
           prompt,
           referenceImages: userPhotos, // User photos for likeness
         });
@@ -64,7 +64,7 @@ export function GeneratingStep({
       }
     };
 
-    generateImage();
+    generateVisionImage();
 
     return () => clearTimeout(skipTimer);
   }, [onComplete, whatYouWant, visionDescription, userPhotos]);
@@ -93,9 +93,11 @@ export function GeneratingStep({
       prompt = 'A beautiful inspiring vision of success and achievement';
     }
 
-    generateImageWithWebhook({
+    generateImage({
       prompt,
       referenceImages: userPhotos,
+    }).then((imageUrl) => {
+      onComplete(imageUrl);
     })
       .then(onComplete)
       .catch((err) => {

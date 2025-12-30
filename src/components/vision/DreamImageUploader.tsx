@@ -10,7 +10,7 @@ import {
 import { ImagePlus, Sparkles, Upload, Camera, X, Loader2, ArrowLeft, Mic, MicOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { generateImageWithWebhook } from '@/lib/webhooks';
+import { generateImage } from '@/lib/image-service';
 import { toast } from 'sonner';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 
@@ -80,7 +80,7 @@ export function DreamImageUploader({
     setIsGenerating(true);
     try {
       const referenceImages = referenceImage ? [referenceImage] : undefined;
-      const generatedImageUrl = await generateImageWithWebhook({
+      const generatedImageUrl = await generateImage({
         prompt: generationPrompt,
         referenceImages,
       });

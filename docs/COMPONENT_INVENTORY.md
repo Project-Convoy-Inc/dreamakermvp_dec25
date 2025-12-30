@@ -1,9 +1,12 @@
 # Component Inventory
 
+> **⚠️ ARCHIVED**: This document is archived as of December 2025. Most components listed here have been implemented. For ongoing enhancement tracking, see `/docs/ENHANCEMENTS_BACKLOG.md`.
+
 ## Document Purpose
 This document tracks components, features, and design elements from various prototype codebases that will be incorporated into the Dreamaker MVP.
 
-**Last Updated**: December 2025
+**Last Updated**: December 2025  
+**Status**: 📦 ARCHIVED - See ENHANCEMENTS_BACKLOG.md for current tracking
 
 ---
 
@@ -101,6 +104,12 @@ Complete shadcn/ui component library built on Radix UI primitives. Provides acce
 
 ### 3. Journaling Feature (Journey/Timeline)
 
+> **Note**: Journaling feature tracking has been moved to `/docs/ENHANCEMENTS_BACKLOG.md` (Section 9: Journal Enhancement). See that document for current status and implementation details.
+
+**Status**: 📋 Tracked in ENHANCEMENTS_BACKLOG.md
+
+**Original Details** (for reference):
+
 **Location**: 
 - `src/pages/Journey.tsx` - Main journaling page
 - `src/components/TimelineEntryModal.tsx` - Entry creation/editing modal
@@ -127,8 +136,6 @@ Comprehensive journaling/timeline system that allows users to create, organize, 
 - **Visual Design**: Gradient backgrounds, category icons, privacy badges
 
 **Priority**: 🔴 High
-
-**Status**: To be incorporated
 
 **Notes**: 
 - Uses Supabase `timeline_captures` table

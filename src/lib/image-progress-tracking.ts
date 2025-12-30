@@ -13,7 +13,7 @@ import {
   generateSuggestionMessage,
 } from '@/types/progress-tracking';
 import { enhancePrompt, generateProgressMetadata } from './prompt-enhancement';
-import { generateImageWithWebhook } from './webhooks';
+import { generateImage } from './image-service';
 
 /**
  * Initialize progress tracking metadata for a new dream image
@@ -101,7 +101,7 @@ export async function updateImageWithProgress(
   );
 
   // Generate new image
-  const imageUrl = await generateImageWithWebhook({
+  const imageUrl = await generateImage({
     prompt: enhancementPrompt,
   });
 

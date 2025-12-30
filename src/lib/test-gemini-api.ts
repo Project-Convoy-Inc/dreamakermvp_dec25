@@ -1,61 +1,73 @@
 /**
- * Simple test function to test Gemini API directly
- * Call this from browser console: window.testGeminiAPI()
+ * Test function to verify the secure image generation service is working
+ * Call this from browser console: window.testImageGeneration()
  */
 
-import { generateImageWithGemini, isGeminiConfigured } from './gemini-api';
+import { generateImageWithGemini, isGeminiConfigured, getAvailableModels } from './gemini-api';
 
-export async function testGeminiAPI(prompt: string = 'A beautiful sunset over mountains') {
-  console.log('🧪 Testing Gemini API...');
+export async function testImageGeneration(prompt: string = 'A beautiful sunset over mountains') {
+  console.log('🧪 Testing Secure Image Generation...');
+  console.log('');
   console.log('Configuration:', {
     isConfigured: isGeminiConfigured(),
-    hasApiKey: !!import.meta.env.VITE_GEMINI_API_KEY || !!import.meta.env.VITE_GEMINI_KEY,
-    apiKeySource: import.meta.env.VITE_GEMINI_API_KEY ? 'VITE_GEMINI_API_KEY' : 
-                  import.meta.env.VITE_GEMINI_KEY ? 'VITE_GEMINI_KEY' : 'none',
-    model: import.meta.env.VITE_GEMINI_MODEL || 'gemini-3-pro-image-preview',
-    useDirect: import.meta.env.VITE_USE_GEMINI_DIRECT,
+    supabaseUrl: import.meta.env.VITE_SUPABASE_URL ? '✅ Set' : '❌ Missing',
+    availableModels: getAvailableModels(),
   });
+  console.log('');
 
   if (!isGeminiConfigured()) {
-    console.error('❌ Gemini API is not configured!');
-    console.log('Please set VITE_GEMINI_API_KEY or VITE_GEMINI_KEY in your environment variables.');
+    console.error('❌ Service not configured!');
+    console.log('');
+    console.log('Make sure VITE_SUPABASE_URL is set in Vercel.');
     return;
   }
 
+  console.log('🔒 Security: API key is stored securely in Supabase, not in browser!');
+  console.log('');
+
   try {
     console.log('📤 Sending request with prompt:', prompt);
+    console.log('');
     const startTime = Date.now();
     
     const result = await generateImageWithGemini({
       prompt,
-      aspectRatio: '1:1',
-      numberOfImages: 1,
-      safetySettings: 'block_few',
+      model: 'fast',
     });
 
     const duration = Date.now() - startTime;
     console.log('✅ Success!', {
-      duration: `${duration}ms`,
-      imageUrlLength: result.imageUrl?.length,
+      duration: `${(duration / 1000).toFixed(1)}s`,
+      imageSize: `${Math.round(result.imageUrl.length / 1024)} KB`,
       mimeType: result.mimeType,
     });
-    console.log('Image URL (first 100 chars):', result.imageUrl?.substring(0, 100) + '...');
+    console.log('');
+    
+    // Show a preview in console
+    console.log('📸 Preview (paste in console to see):');
+    console.log(`document.body.innerHTML = '<img src="${result.imageUrl}" style="max-width:100%">'`);
     
     return result;
   } catch (error) {
+    console.error('');
     console.error('❌ Error:', error);
     if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Message:', error.message);
     }
+    console.log('');
+    console.log('Troubleshooting:');
+    console.log('1. Is the Edge Function deployed? Run: supabase functions deploy generate-image');
+    console.log('2. Is GEMINI_API_KEY set in Supabase secrets?');
+    console.log('3. Check Supabase Dashboard → Edge Functions → Logs');
     throw error;
   }
 }
 
 // Make it available globally for easy testing
 if (typeof window !== 'undefined') {
-  (window as any).testGeminiAPI = testGeminiAPI;
-  console.log('💡 Test function available! Call window.testGeminiAPI() in the console to test.');
+  (window as any).testImageGeneration = testImageGeneration;
+  // Keep old name for backward compatibility
+  (window as any).testGeminiAPI = testImageGeneration;
+  console.log('💡 Test ready! Call window.testImageGeneration() in the console.');
 }
 

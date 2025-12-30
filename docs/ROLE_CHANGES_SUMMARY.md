@@ -62,24 +62,18 @@ The Dreamaker platform has been updated from a 3-role system to a simpler 2-role
    - PostHog survey integration
    - Content moderation placeholder
 
-2. **`/docs/ROLE_SYSTEM_OVERVIEW.md`**
+2. **`/docs/SYSTEM_ARCHITECTURE.md`** (Renamed from ROLE_SYSTEM_OVERVIEW.md)
    - Clear explanation of 2-role system
    - Usage examples
    - Security guidelines
+   - System architecture overview
 
-3. **`/docs/DATABASE_ROLE_MIGRATION.md`**
-   - SQL migration scripts
-   - Step-by-step migration guide
-   - Rollback instructions
-
-4. **`/docs/ENHANCEMENTS_BACKLOG.md`** (Updated)
+3. **`/docs/ENHANCEMENTS_BACKLOG.md`** (Updated)
    - Added Section 11: "Partner Visibility & Collaboration Features"
    - Clarifies partner features are for users, not a role
    - Details future enhancements for accountability partner visibility
 
-5. **`/docs/ROLE_QUICK_REFERENCE.md`** (Updated)
-   - Updated to reflect 2-role system
-   - Removed all partner role references
+**Note**: Database migration documentation has been removed as the migration is complete. For reference, see the migration section below or `/docs/SYSTEM_ARCHITECTURE.md`.
 
 ---
 
@@ -110,7 +104,7 @@ ALTER TABLE profiles ALTER COLUMN role TYPE user_role USING role::user_role;
 ALTER TABLE profiles ALTER COLUMN role SET DEFAULT 'user';
 ```
 
-See `/docs/DATABASE_ROLE_MIGRATION.md` for full details.
+Migration is complete. For system architecture details, see `/docs/SYSTEM_ARCHITECTURE.md`.
 
 ---
 
@@ -193,7 +187,7 @@ After migration:
 
 ## Next Steps
 
-1. **Run database migration** (see `/docs/DATABASE_ROLE_MIGRATION.md`)
+1. **Review system architecture** (see `/docs/SYSTEM_ARCHITECTURE.md`)
 2. **Review admin features** (see `/docs/ADMIN_FEATURES.md`)
 3. **Test onboarding** with new role dropdown
 4. **Verify** accountability partner features still work

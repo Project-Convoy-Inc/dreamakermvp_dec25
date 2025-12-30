@@ -12,9 +12,12 @@ import { SyncStatus } from "@/components/ui/sync-status";
 import { useUserStore } from "@/stores/userStore";
 import { useEffect, lazy, Suspense } from "react";
 import { VisionBoardSkeleton, ProgressPageSkeleton } from "@/components/ui/loading-skeleton";
+import { handleDevBypass } from "@/utils/dev-bypass";
+import { safeRemoveItem } from "@/lib/storage";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
 
 // Lazy load pages for better performance
-const Index = lazy(() => import("./pages/Index"));
+const Vision = lazy(() => import("./pages/Vision"));
 const Convoy = lazy(() => import("./pages/Convoy"));
 const Progress = lazy(() => import("./pages/Progress"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -31,37 +34,34 @@ function AppContent() {
   const setOnboardingComplete = useUserStore((state) => state.setOnboardingComplete);
 
   // Dev bypass: Skip onboarding with ?skipOnboarding=true (only in development)
-  // Check this FIRST before the onboarding check
   const skipOnboarding = searchParams.get('skipOnboarding') === 'true';
   const isDev = import.meta.env.DEV;
   
   useEffect(() => {
-    if (skipOnboarding && isDev) {
-      // Clear any existing onboarding state
-      localStorage.removeItem('dreamaker_onboarding_state');
-      
-      // Set up test user if not already set
-      if (!profile) {
-        setProfile({
-          name: "Test User",
-          email: "test@example.com"
-        });
+    handleDevBypass(
+      { skipOnboarding, isDev },
+      {
+        clearOnboardingState: () => safeRemoveItem(STORAGE_KEYS.ONBOARDING_STATE),
+        setTestProfile: () => {
+          if (!profile) {
+            setProfile({
+              name: "Test User",
+              email: "test@example.com"
+            });
+          }
+        },
+        markOnboardingComplete: () => {
+          if (!isOnboardingComplete) {
+            setOnboardingComplete(true);
+          }
+        },
+        navigateHome: () => navigate('/', { replace: true }),
       }
-      
-      // Mark onboarding as complete
-      if (!isOnboardingComplete) {
-        setOnboardingComplete(true);
-      }
-      
-      // Remove the parameter from URL and navigate to home
-      navigate('/', { replace: true });
-    }
+    );
   }, [skipOnboarding, isDev, profile, isOnboardingComplete, setProfile, setOnboardingComplete, navigate]);
 
   // If bypass is active, don't show onboarding (even if state hasn't updated yet)
   if (skipOnboarding && isDev) {
-    // Return null or a loading state while the effect runs
-    // The effect will navigate away, so this is just a brief moment
     return null;
   }
 
@@ -87,9 +87,9 @@ function AppContent() {
         <main className="container pt-20 md:pt-24 pb-24 md:pb-8">
           <Suspense fallback={<VisionBoardSkeleton />}>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Vision />} />
               <Route path="/convoy" element={<Convoy />} />
-              <Route path="/progress" element={<Suspense fallback={<ProgressPageSkeleton />}><Progress /></Suspense>} />
+              <Route path="/progress" element={<Progress />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

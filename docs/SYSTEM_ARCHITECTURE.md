@@ -1,4 +1,4 @@
-# Role System Overview
+# System Architecture
 
 ## Two User Roles
 
@@ -124,7 +124,7 @@ import { RoleBasedUI } from '@/components/RoleBasedUI';
 
 **Documentation:**
 - `/docs/ADMIN_FEATURES.md` - Detailed admin capabilities
-- `/docs/ROLE_SYSTEM_OVERVIEW.md` - This file
+- `/docs/SYSTEM_ARCHITECTURE.md` - This file
 - `/docs/ENHANCEMENTS_BACKLOG.md` - Future enhancements (including partner visibility features)
 
 ## Security

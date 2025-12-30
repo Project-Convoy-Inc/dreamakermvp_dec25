@@ -2,9 +2,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
 import { ArrowLeft, FileText, Dumbbell, BookOpen, Link } from 'lucide-react';
-import { VoiceInputButton } from '../VoiceInputButton';
+import { VoiceInputButton } from '@/components/onboarding/VoiceInputButton';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
-import { DocumentUpload } from '../DocumentUpload';
+import { DocumentUpload } from '@/components/onboarding/DocumentUpload';
 
 interface CurrentStatusStepProps {
   currentStatus: string;
